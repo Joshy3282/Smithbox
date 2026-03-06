@@ -1,3 +1,5 @@
+Just some changes/fixes for my personal use of Smithbox
+
 # Smithbox
 Smithbox is a modding tool for Elden Ring, Elden Ring: Nightreign, Armored Core VI, Sekiro, Dark Souls 3, Dark Souls 2, Dark Souls 1, Bloodborne and Demon's Souls.
 
