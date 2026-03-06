@@ -20,7 +20,11 @@ public enum MousebindID
     MapEditor_Display_Viewport_Context_Menu,
     MapEditor_Select_Map_In_World_Map,
     MapEditor_World_Map_Drag_Start,
-    MapEditor_World_Map_Drag_End
+    MapEditor_World_Map_Drag_End,
+
+    // Param Editor
+    ParamEditor_Back,
+    ParamEditor_Forward
 }
 
 public static class DefaultMouseBindings
@@ -55,6 +59,13 @@ public static class DefaultMouseBindings
 
         InputManager.BindMouseKey(
             MousebindID.MapEditor_World_Map_Drag_End, new() { Key = MouseButton.Left });
+
+        // Param Editor
+        InputManager.BindMouseKey(
+            MousebindID.ParamEditor_Back, new() { Key = MouseButton.Button1 });
+
+        InputManager.BindMouseKey(
+            MousebindID.ParamEditor_Forward, new() { Key = MouseButton.Button2 });
     }
 }
 
@@ -101,6 +112,16 @@ public static class MousebindMetadata
             "End World Map Drag",
             "The button that is released to signal the end of the world map drag."
         ) },
+
+        // Param Editor
+        { MousebindID.ParamEditor_Back, (
+            "Back",
+            "The button that is pressed to go back in the param selection history."
+        ) },
+        { MousebindID.ParamEditor_Forward, (
+            "Forward",
+            "The button that is pressed to go forward in the param selection history."
+        ) },
     };
 
 
@@ -116,5 +137,8 @@ public static class MousebindMetadata
         { MousebindID.MapEditor_Select_Map_In_World_Map, InputCategory.MapEditor },
         { MousebindID.MapEditor_World_Map_Drag_Start, InputCategory.MapEditor },
         { MousebindID.MapEditor_World_Map_Drag_End, InputCategory.MapEditor },
+
+        { MousebindID.ParamEditor_Back, InputCategory.ParamEditor },
+        { MousebindID.ParamEditor_Forward, InputCategory.ParamEditor },
     };
 }

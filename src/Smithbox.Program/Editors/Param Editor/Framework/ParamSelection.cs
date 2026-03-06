@@ -15,7 +15,9 @@ public class ParamSelection
     private static string _globalPropSearchString = "";
     private readonly Dictionary<string, ParamSelectionState> _paramStates = new();
 
-    private readonly List<(string, Param.Row)> pastStack = new();
+    private readonly List<string> _history = new();
+    private int _historyIndex = -1;
+
     private string _activeParam;
 
     public ParamSelection(ParamEditorScreen editor, ProjectEntry project)
@@ -24,57 +26,53 @@ public class ParamSelection
         Project = project;
     }
 
-    private void PushHistory(string newParam, Param.Row newRow)
+    private void PushHistory(string newParam)
     {
-        if (pastStack.Count > 0)
+        if (_historyIndex >= 0 && _history[_historyIndex] == newParam)
+            return;
+
+        // Remove everything after current index
+        if (_historyIndex < _history.Count - 1)
         {
-            (string, Param.Row) prev = pastStack[pastStack.Count - 1];
-
-            if (prev.Item1 == newParam && prev.Item2 == null)
-            {
-                pastStack[pastStack.Count - 1] = (prev.Item1, newRow);
-            }
-
-            prev = pastStack[pastStack.Count - 1];
-
-            if (prev.Item1 == newParam && prev.Item2 == newRow)
-            {
-                return;
-            }
+            _history.RemoveRange(_historyIndex + 1, _history.Count - (_historyIndex + 1));
         }
 
-        if (_activeParam != null)
-        {
-            pastStack.Add((_activeParam, _paramStates[_activeParam].activeRow));
-        }
+        _history.Add(newParam);
+        _historyIndex++;
 
-        if (pastStack.Count >= 6)
+        if (_history.Count >= 100)
         {
-            pastStack.RemoveAt(0);
+            _history.RemoveAt(0);
+            _historyIndex--;
         }
     }
 
     public void PopHistory()
     {
-        if (pastStack.Count > 0)
+        GoBack();
+    }
+
+    public void GoBack()
+    {
+        if (_historyIndex > 0)
         {
-            (string, Param.Row) past = pastStack[pastStack.Count - 1];
-            pastStack.RemoveAt(pastStack.Count - 1);
+            _historyIndex--;
+            SetActiveParam(_history[_historyIndex], true);
+        }
+    }
 
-            if (past.Item2 == null && pastStack.Count > 0)
-            {
-                past = pastStack[pastStack.Count - 1];
-                pastStack.RemoveAt(pastStack.Count - 1);
-            }
-
-            SetActiveParam(past.Item1, true);
-            SetActiveRow(past.Item2, true, true);
+    public void GoForward()
+    {
+        if (_historyIndex < _history.Count - 1)
+        {
+            _historyIndex++;
+            SetActiveParam(_history[_historyIndex], true);
         }
     }
 
     public bool HasHistory()
     {
-        return pastStack.Count > 0;
+        return _historyIndex > 0;
     }
 
     public bool ActiveParamExists()
@@ -91,7 +89,7 @@ public class ParamSelection
     {
         if (!isHistory)
         {
-            PushHistory(param, null);
+            PushHistory(param);
         }
 
         _activeParam = param;
@@ -187,11 +185,6 @@ public class ParamSelection
             if (s.activeRow != null)
             {
                 Editor.Project.Handler.ParamData.PrimaryBank.RefreshParamRowDiffs(Editor, s.activeRow, _activeParam);
-            }
-
-            if (!isHistory)
-            {
-                PushHistory(_activeParam, s.activeRow);
             }
 
             s.activeRow = row;

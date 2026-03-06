@@ -31,11 +31,12 @@ public class MapListView : IActionEventHandler
     {
         UIHelper.SimpleHeader("Map List", "");
 
+        DisplayMenubar();
+
         ImGui.BeginChild("MapList", new System.Numerics.Vector2(width, height), ImGuiChildFlags.Borders);
 
         FocusManager.SetFocus(EditorFocusContext.MapEditor_FileList);
 
-        DisplayMenubar();
         DisplaySearchbar();
 
         if (View.Project.Descriptor.ProjectType is ProjectType.BB)

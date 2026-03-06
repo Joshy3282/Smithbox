@@ -199,6 +199,16 @@ public class ParamShortcuts
                     activeView.Selection.GetActiveParam());
             }
         }
+
+        // Back / Forward
+        if (InputManager.IsMousePressed(MousebindID.ParamEditor_Back))
+        {
+            activeView.Selection.GoBack();
+        }
+        if (InputManager.IsMousePressed(MousebindID.ParamEditor_Forward))
+        {
+            activeView.Selection.GoForward();
+        }
     }
     public bool AllowContextualShortcuts(ParamEditorView curView)
     {
