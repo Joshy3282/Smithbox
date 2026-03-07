@@ -410,9 +410,9 @@ public class CFG
 
     // Scene Filters
     public RenderFilter LastSceneFilter { get; set; } = RenderFilter.All ^ RenderFilter.Light;
-    public RenderFilterPreset Viewport_Filter_Preset_1 { get; set; } = new("Map", RenderFilter.MapPiece | RenderFilter.Object | RenderFilter.Character | RenderFilter.Region);
-    public RenderFilterPreset Viewport_Filter_Preset_2 { get; set; } = new("Collision", RenderFilter.Collision | RenderFilter.Object | RenderFilter.Character | RenderFilter.Region);
-    public RenderFilterPreset Viewport_Filter_Preset_3 { get; set; } = new("Collision & Navmesh", RenderFilter.Collision | RenderFilter.Navmesh | RenderFilter.Object | RenderFilter.Character | RenderFilter.Region);
+    public RenderFilterPreset Viewport_Filter_Preset_1 { get; set; } = new("Map", RenderFilter.MapPiece | RenderFilter.Object | RenderFilter.Character);
+    public RenderFilterPreset Viewport_Filter_Preset_2 { get; set; } = new("Collision", RenderFilter.Collision | RenderFilter.Object | RenderFilter.Character);
+    public RenderFilterPreset Viewport_Filter_Preset_3 { get; set; } = new("Collision & Navmesh", RenderFilter.Collision | RenderFilter.Navmesh | RenderFilter.Object | RenderFilter.Character);
     public RenderFilterPreset Viewport_Filter_Preset_4 { get; set; } = new("Lighting (Map)", RenderFilter.MapPiece | RenderFilter.Object | RenderFilter.Character | RenderFilter.Light);
     public RenderFilterPreset Viewport_Filter_Preset_5 { get; set; } = new("Lighting (Collision)", RenderFilter.Collision | RenderFilter.Object | RenderFilter.Character | RenderFilter.Light);
     public RenderFilterPreset Viewport_Filter_Preset_6 { get; set; } = new("All", RenderFilter.All);
