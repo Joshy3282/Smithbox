@@ -35,11 +35,11 @@ public class ProjectData : IDisposable
 
         if (aliasesSetup)
         {
-            Smithbox.Log(this, $"[{Project.Descriptor.ProjectName}] Setup aliases.", LogLevel.Information);
+            Smithbox.Log(this, $"[Project] Setup aliases for '{Project.Descriptor.ProjectName}'", LogLevel.Information);
         }
         else
         {
-            Smithbox.Log(this, $"[{Project.Descriptor.ProjectName}] Failed to setup aliases.", LogLevel.Information);
+            Smithbox.Log(this, $"[Project] Failed to setup aliases for '{Project.Descriptor.ProjectName}'", LogLevel.Information);
         }
 
         // Project Enums (per project)
@@ -48,11 +48,11 @@ public class ProjectData : IDisposable
 
         if (projectParamEnumResult)
         {
-            Smithbox.Log(this, $"[{Project.Descriptor.ProjectName}] Setup Project Param Enums.", LogLevel.Information);
+            Smithbox.Log(this, $"[Project] Setup Project Param Enums for '{Project.Descriptor.ProjectName}'", LogLevel.Information);
         }
         else
         {
-            Smithbox.Log(this, $"[{Project.Descriptor.ProjectName}] Failed to setup Project Param Enums.", LogLevel.Information);
+            Smithbox.Log(this, $"[Project] Failed to setup Project Param Enums for '{Project.Descriptor.ProjectName}'", LogLevel.Information);
         }
 
         return true;
@@ -95,12 +95,12 @@ public class ProjectData : IDisposable
                 }
                 catch (Exception e)
                 {
-                    Smithbox.LogError(this, $"[Smithbox] Failed to deserialize the aliases: {sourceFile}", LogPriority.High, e);
+                    Smithbox.LogError(this, $"[Project] Failed to deserialize the aliases: {sourceFile}", LogPriority.High, e);
                 }
             }
             catch (Exception e)
             {
-                Smithbox.LogError(this, $"[Smithbox] Failed to read the aliases: {sourceFile}", LogPriority.High, e);
+                Smithbox.LogError(this, $"[Project] Failed to read the aliases: {sourceFile}", LogPriority.High, e);
             }
         }
 
@@ -151,12 +151,12 @@ public class ProjectData : IDisposable
                 }
                 catch (Exception e)
                 {
-                    Smithbox.LogError(this, $"[Smithbox] Failed to deserialize the Project Enums: {targetFile}", LogPriority.High, e);
+                    Smithbox.LogError(this, $"[Project] Failed to deserialize the Project Enums: {targetFile}", LogPriority.High, e);
                 }
             }
             catch (Exception e)
             {
-                Smithbox.LogError(this, $"[Smithbox] Failed to read the Project Enums: {targetFile}", LogPriority.High, e);
+                Smithbox.LogError(this, $"[Project] Failed to read the Project Enums: {targetFile}", LogPriority.High, e);
             }
         }
 
