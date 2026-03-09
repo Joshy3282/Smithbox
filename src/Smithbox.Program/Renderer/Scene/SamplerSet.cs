@@ -43,6 +43,18 @@ public static class SamplerSet
         SamplersSet = d.ResourceFactory.CreateResourceSet(setdesc);
     }
 
+    public static (ResourceSet resourceSet, Sampler sampler) CreateResourceSetWithBias(GraphicsDevice d, int bias)
+    {
+        var biasedSampler = d.ResourceFactory.CreateSampler(new SamplerDescription(
+            VkSamplerAddressMode.Repeat, VkSamplerAddressMode.Repeat, VkSamplerAddressMode.Repeat,
+            VkFilter.Linear, VkFilter.Linear, VkSamplerMipmapMode.Linear,
+            null, 16, 0, 15, bias, VkBorderColor.FloatOpaqueBlack
+        ));
+
+        ResourceSetDescription setdesc = new(SamplersLayout, _linearSampler, biasedSampler);
+        return (d.ResourceFactory.CreateResourceSet(setdesc), biasedSampler);
+    }
+
     public static void Destory()
     {
         SamplersSet.Dispose();

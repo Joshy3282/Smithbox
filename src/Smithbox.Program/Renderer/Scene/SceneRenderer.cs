@@ -408,7 +408,7 @@ public class SceneRenderer
     /// </summary>
     public class IndirectDrawEncoder
     {
-        private const int MAX_BATCH = 100;
+        private const int MAX_BATCH = 2000;
         private const uint INITIAL_CALL_COUNT = 10000;
         private const float GROWTH_FACTOR = 1.5f;
 
@@ -672,7 +672,7 @@ public class SceneRenderer
                 GlobalCubeTexturePool.BindTexturePool(cl, 3);
                 MaterialBufferAllocator.BindAsResourceSet(cl, 4);
                 BoneBufferAllocator.BindAsResourceSet(cl, 7);
-                cl.SetGraphicsResourceSet(5, SamplerSet.SamplersSet);
+                cl.SetGraphicsResourceSet(5, pipeline.SamplerResourceSet);
 
                 if (!GeometryBufferAllocator.BindAsVertexBuffer(cl, batch._bufferIndex)) continue;
                 if (!GeometryBufferAllocator.BindAsIndexBuffer(cl, batch._bufferIndex, batch._indexFormat)) continue;
@@ -723,7 +723,7 @@ public class SceneRenderer
                 GlobalCubeTexturePool.BindTexturePool(cl, 3);
                 MaterialBufferAllocator.BindAsResourceSet(cl, 4);
                 BoneBufferAllocator.BindAsResourceSet(cl, 7);
-                cl.SetGraphicsResourceSet(5, SamplerSet.SamplersSet);
+                cl.SetGraphicsResourceSet(5, pipeline.SamplerResourceSet);
 
                 if (!GeometryBufferAllocator.BindAsVertexBuffer(cl,
                         _batches[(MAX_BATCH * _renderSet) + i]._bufferIndex))

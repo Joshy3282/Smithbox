@@ -26,6 +26,8 @@ public class SceneRenderPipeline : IDisposable
     public DeviceBuffer SceneParamBuffer { get; }
     public ResourceSet SceneParamResourceSet { get; }
 
+    public ResourceSet SamplerResourceSet { get; set; }
+
     public SceneParam SceneParams;
 
     // Picking Results
@@ -111,6 +113,8 @@ public class SceneRenderPipeline : IDisposable
                 VmaMemoryUsage.Auto,
                 VmaAllocationCreateFlags.Mapped));
         device.UpdateBuffer(PickingResultReadbackBuffer, 0, ref PickingResult, (uint)sizeof(PickingResult));
+
+        SamplerResourceSet = SamplerSet.SamplersSet;
 
         _renderQueue = new SceneRenderer.RenderQueue("Viewport Render", device, this);
         SceneRenderer.RegisterRenderQueue(_renderQueue);
