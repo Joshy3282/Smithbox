@@ -6,6 +6,7 @@ using StudioCore.Renderer;
 using StudioCore.Utilities;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using Veldrid;
@@ -16,7 +17,7 @@ namespace StudioCore.Editors.Viewport;
 
 public class TiledScreenshotTool
 {
-    private readonly VulkanViewport _viewport;
+    private VulkanViewport _viewport;
     private int _multiplier = 4;
     private int _mipmapBias = -1;
 
@@ -57,7 +58,7 @@ public class TiledScreenshotTool
         }
     }
 
-    private void Capture()
+    private unsafe void Capture()
     {
         string path;
         if (PlatformUtils.Instance.SaveFileDialog("Save Screenshot", new List<string> { "png" }, out path))
@@ -67,7 +68,7 @@ public class TiledScreenshotTool
         }
     }
 
-    private unsafe void CaptureHighRes(string savePath, int multiplier, int mipmapBias)
+    public unsafe void CaptureHighRes(string savePath, int multiplier, int mipmapBias)
     {
         var device = _viewport.Device;
         var factory = device.ResourceFactory;
@@ -80,24 +81,24 @@ public class TiledScreenshotTool
         int fullHeight = _viewport.Height * multiplier;
 
         // Determine tiling to keep GPU framebuffer size reasonable (e.g. ~2048-4096)
-        int tileCount = (int)Math.Ceiling(multiplier / 2.0);
+        int tileCount = (int)Math.Ceiling((double)multiplier / 2.0);
         if (tileCount < 1) tileCount = 1;
 
         int tileWidth = (int)Math.Ceiling((double)fullWidth / tileCount);
         int tileHeight = (int)Math.Ceiling((double)fullHeight / tileCount);
 
-        Smithbox.Log(this, $"Starting high-res capture: {fullWidth}x{fullHeight} using {tileCount}x{tileCount} tiles...", Microsoft.Extensions.Logging.LogLevel.Information, Logger.LogPriority.Normal);
+        Smithbox.Log(this, $"Starting high-res capture: {fullWidth}x{fullHeight} using {tileCount}x{tileCount} tiles...", Microsoft.Extensions.Logging.LogLevel.Information, StudioCore.Logger.LogPriority.Normal);
 
         // Create temporary pipeline
         using var tempPipeline = new SceneRenderPipeline(_viewport.RenderScene, device, tileWidth, tileHeight);
         
         // Use biased samplers if requested
-        ResourceSet biasedRs = null;
+        ResourceSet biasedRS = null;
         Sampler biasedSampler = null;
         if (mipmapBias != 0)
         {
-            (biasedRs, biasedSampler) = SamplerSet.CreateResourceSetWithBias(device, mipmapBias);
-            tempPipeline.SamplerResourceSet = biasedRs;
+            (biasedRS, biasedSampler) = SamplerSet.CreateResourceSetWithBias(device, mipmapBias);
+            tempPipeline.SamplerResourceSet = biasedRS;
         }
 
         // CRITICAL: Unregister queues from the global renderer
@@ -157,9 +158,9 @@ public class TiledScreenshotTool
                     tempPipeline.SceneParams.EnvMap = _viewport.ViewPipeline.SceneParams.EnvMap;
 
                     // 1. Force upload of parameters
-                    var clUpdate = factory.CreateCommandList();
-                    clUpdate.UpdateBuffer(tempPipeline.SceneParamBuffer, 0, ref tempPipeline.SceneParams, (uint)Marshal.SizeOf<SceneParam>());
-                    device.SubmitCommands(clUpdate);
+                    var cl_update = factory.CreateCommandList();
+                    cl_update.UpdateBuffer(tempPipeline.SceneParamBuffer, 0, ref tempPipeline.SceneParams, (uint)Marshal.SizeOf<SceneParam>());
+                    device.SubmitCommands(cl_update);
                     device.WaitForIdle();
 
                     // 2. Render scene into isolated internal lists
@@ -169,17 +170,17 @@ public class TiledScreenshotTool
 
                     // 3. Draw tile
                     using var fence = factory.CreateFence(false);
-                    var clDraw = factory.CreateCommandList();
-                    clDraw.SetFramebuffer(framebuffer);
-                    clDraw.SetFullViewport(0);
-                    clDraw.ClearColorTarget(0, RgbaFloat.Black);
-                    clDraw.ClearDepthStencil(0.0f);
+                    var cl_draw = factory.CreateCommandList();
+                    cl_draw.SetFramebuffer(framebuffer);
+                    cl_draw.SetFullViewport(0);
+                    cl_draw.ClearColorTarget(0, RgbaFloat.Black);
+                    cl_draw.ClearDepthStencil(0.0f);
 
-                    tempPipeline._renderQueue.ExecuteSynchronous(clDraw);
-                    tempPipeline._overlayQueue.ExecuteSynchronous(clDraw);
+                    tempPipeline._renderQueue.ExecuteSynchronous(cl_draw);
+                    tempPipeline._overlayQueue.ExecuteSynchronous(cl_draw);
 
-                    clDraw.CopyTexture(colorTex, stagingTex);
-                    device.SubmitCommands(clDraw, fence);
+                    cl_draw.CopyTexture(colorTex, stagingTex);
+                    device.SubmitCommands(cl_draw, fence);
                     device.WaitForFence(fence);
 
                     // 4. Map and copy to big image
@@ -217,15 +218,15 @@ public class TiledScreenshotTool
             }
 
             bigImage.SaveAsPng(savePath);
-            Smithbox.Log(this, $"High-res tiled screenshot saved to {savePath}", Microsoft.Extensions.Logging.LogLevel.Information, Logger.LogPriority.High);
+            Smithbox.Log(this, $"High-res tiled screenshot saved to {savePath}", Microsoft.Extensions.Logging.LogLevel.Information, StudioCore.Logger.LogPriority.High);
         }
         catch (Exception ex)
         {
-            Smithbox.Log(this, $"Failed to capture high-res screenshot: {ex.Message}", Microsoft.Extensions.Logging.LogLevel.Error, Logger.LogPriority.High);
+            Smithbox.Log(this, $"Failed to capture high-res screenshot: {ex.Message}", Microsoft.Extensions.Logging.LogLevel.Error, StudioCore.Logger.LogPriority.High);
         }
         finally
         {
-            biasedRs?.Dispose();
+            biasedRS?.Dispose();
             biasedSampler?.Dispose();
         }
     }
