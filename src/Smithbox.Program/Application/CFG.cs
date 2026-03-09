@@ -53,6 +53,7 @@ public class CFG
     public int Logger_Warning_Fade_Time = 1500;
     public bool Logger_Enable_Color_Fade = true;
     public bool Logger_Enable_Log_Popups = true;
+    public bool Logger_Enable_Scope_Logging = false;
 
     public bool Developer_Enable_Tools = false;
     public string Developer_Smithbox_Build_Folder = "";
@@ -558,6 +559,9 @@ public class CFG
     public bool ParamEditor_Field_List_Display_Icon_Preview = true;
     public float ParamEditor_Field_List_Icon_Preview_Scale = 1.0f;
     public bool ParamEditor_Field_List_Display_Modified_Field_Bg = true;
+    public bool ParamEditor_Field_List_GroupReference_DisplayCommunityName = true;
+    public bool ParamEditor_Field_List_Enable_Field_Layouts = true;
+    public FieldLayoutMode ParamEditor_Field_List_Enable_Field_Layout_Type = FieldLayoutMode.Collapsible;
 
     public ParamTooltipMode ParamEditor_Field_List_Tooltip_Mode = ParamTooltipMode.OnFieldName;
 
@@ -1241,7 +1245,7 @@ public class CFG
             }
             catch (Exception e)
             {
-                Smithbox.Log<CFG>("[Smithbox] Configuration failed to load, default configuration has been restored.", LogLevel.Error, LogPriority.High, e);
+                Smithbox.Log<CFG>("Configuration failed to load, default configuration has been restored.", LogLevel.Error, LogPriority.High, e);
 
                 Current = new CFG();
                 Save();

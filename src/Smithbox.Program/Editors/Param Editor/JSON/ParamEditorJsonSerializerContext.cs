@@ -65,6 +65,16 @@ namespace StudioCore.Editors.ParamEditor;
 [JsonSerializable(typeof(RowDelta))]
 [JsonSerializable(typeof(FieldDelta))]
 
+// Group References
+[JsonSerializable(typeof(GroupReferences))]
+[JsonSerializable(typeof(GroupRefList))]
+[JsonSerializable(typeof(GroupRefEntry))]
+
+// Field Groups
+[JsonSerializable(typeof(FieldLayouts))]
+[JsonSerializable(typeof(FieldLayout))]
+[JsonSerializable(typeof(FieldLayoutEntry))]
+
 internal partial class ParamEditorJsonSerializerContext : JsonSerializerContext
 {
 }
