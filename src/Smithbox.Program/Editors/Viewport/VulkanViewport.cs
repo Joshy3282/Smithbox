@@ -56,6 +56,7 @@ public class VulkanViewport : IViewport
 
     public ClickSelection ClickSelection;
     public BoxSelection BoxSelection;
+    public TiledScreenshotTool TiledScreenshotTool;
 
     /// <summary>
     /// If true, the user can interact with the viewport.
@@ -238,6 +239,7 @@ public class VulkanViewport : IViewport
 
             ClickSelection = new(this);
             BoxSelection = new(this);
+            TiledScreenshotTool = new(this);
 
             ClearQuad = new FullScreenQuad();
 

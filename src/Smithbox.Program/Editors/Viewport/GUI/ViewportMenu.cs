@@ -33,6 +33,12 @@ public class ViewportMenu
         FilterMenu();
         GizmoMenu();
         SelectionMenu();
+        Parent.TiledScreenshotTool.OnGui();
+
+        if (Owner is MapUniverse mapUniverse)
+        {
+            mapUniverse.View.FullMapExportTool.OnGui();
+        }
 
         ImGui.EndMenuBar();
     }

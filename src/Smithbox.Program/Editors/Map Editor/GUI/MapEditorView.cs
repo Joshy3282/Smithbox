@@ -92,6 +92,7 @@ public class MapEditorView
     public MapModelInsightHelper ModelInsightTool;
     public AutomaticPreviewTool AutomaticPreviewTool;
     public PatrolDrawManager PatrolDrawManager;
+    public FullMapExportTool FullMapExportTool;
 
     public MapEditorView(MapEditorScreen editor, ProjectEntry project, int imguiId)
     {
@@ -177,6 +178,7 @@ public class MapEditorView
         MapModelInsightTool = new MapModelInsightView(this, project);
         ModelInsightTool = new MapModelInsightHelper(this, project);
         PatrolDrawManager = new PatrolDrawManager(this);
+        FullMapExportTool = new FullMapExportTool(this, project);
 
         ViewportActionManager.AddEventHandler(MapListView);
     }

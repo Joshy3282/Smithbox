@@ -49,6 +49,29 @@ public static class ViewportUtils
         return persp;
     }
 
+    public static Matrix4x4 CreateTiledProjection(
+        GraphicsDevice gd,
+        Matrix4x4 fullProj,
+        int tileX, int tileY, int multiplier)
+    {
+        float N = (float)multiplier;
+        
+        // Calculate center of the tile in clip space [-1, 1]
+        float centerX = -1.0f + (2.0f * tileX + 1.0f) / N;
+        float centerY = -1.0f + (2.0f * tileY + 1.0f) / N;
+
+        // We want a transformation that maps the tile box to the full [-1, 1] clip space
+        // NewClip = (OldClip - Center) * N
+        // NewClip = OldClip * N - Center * N
+        
+        Matrix4x4 scale = Matrix4x4.CreateScale(N, N, 1.0f);
+        Matrix4x4 translation = Matrix4x4.CreateTranslation(-centerX * N, -centerY * N, 0.0f);
+        
+        // In System.Numerics, M1 * M2 means M1 happens first.
+        // So we apply fullProj, then scale, then translation.
+        return fullProj * scale * translation;
+    }
+
     private static Matrix4x4 CreatePerspective(float fov, float aspectRatio, float near, float far)
     {
         if (fov <= 0.0f || fov >= Math.PI)
