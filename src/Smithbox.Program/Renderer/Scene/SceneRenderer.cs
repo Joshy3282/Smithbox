@@ -125,6 +125,11 @@ public class SceneRenderer
         RenderQueues.Add(queue);
     }
 
+    public static void UnregisterRenderQueue(RenderQueue queue)
+    {
+        RenderQueues.Remove(queue);
+    }
+
     public static void AddBackgroundUploadTask(Action<GraphicsDevice, CommandList> action)
     {
         lock (BackgroundUploadQueue)
@@ -403,7 +408,7 @@ public class SceneRenderer
     /// </summary>
     public class IndirectDrawEncoder
     {
-        private const int MAX_BATCH = 100;
+        private const int MAX_BATCH = 2000;
         private const uint INITIAL_CALL_COUNT = 10000;
         private const float GROWTH_FACTOR = 1.5f;
 
@@ -651,6 +656,50 @@ public class SceneRenderer
             }
         }
 
+        public void SubmitSynchronous(CommandList cl, SceneRenderPipeline pipeline)
+        {
+            // Force submission from the staging set
+            uint countTotal = _indirectDrawCount[_stagingSet];
+            uint batchCountTotal = _batchCount[_stagingSet];
+
+            for (var i = 0; i < batchCountTotal; i++)
+            {
+                var batch = _batches[(MAX_BATCH * _stagingSet) + i];
+                cl.SetPipeline(batch._pipeline);
+                pipeline.BindResources(cl);
+                cl.SetGraphicsResourceSet(1, batch._objectRS);
+                GlobalTexturePool.BindTexturePool(cl, 2);
+                GlobalCubeTexturePool.BindTexturePool(cl, 3);
+                MaterialBufferAllocator.BindAsResourceSet(cl, 4);
+                BoneBufferAllocator.BindAsResourceSet(cl, 7);
+                cl.SetGraphicsResourceSet(5, pipeline.SamplerResourceSet);
+
+                if (!GeometryBufferAllocator.BindAsVertexBuffer(cl, batch._bufferIndex)) continue;
+                if (!GeometryBufferAllocator.BindAsIndexBuffer(cl, batch._bufferIndex, batch._indexFormat)) continue;
+
+                var count = countTotal - batch._batchStart;
+                if (i < batchCountTotal - 1)
+                {
+                    count = _batches[(MAX_BATCH * _stagingSet) + i + 1]._batchStart - batch._batchStart;
+                }
+
+                if (UseDirect)
+                {
+                    var start = batch._batchStart;
+                    for (var d = start; d < start + count; d++)
+                    {
+                        cl.DrawIndexed(_directBuffer[d].IndexCount, _directBuffer[d].InstanceCount,
+                            _directBuffer[d].FirstIndex,
+                            _directBuffer[d].VertexOffset, _directBuffer[d].FirstInstance);
+                    }
+                }
+                else
+                {
+                    cl.DrawIndexedIndirect(_indirectBuffer, batch._batchStart * 20, count, 20);
+                }
+            }
+        }
+
         /// <summary>
         ///     Submit the encoded batches as indirect draw calls
         /// </summary>
@@ -674,7 +723,7 @@ public class SceneRenderer
                 GlobalCubeTexturePool.BindTexturePool(cl, 3);
                 MaterialBufferAllocator.BindAsResourceSet(cl, 4);
                 BoneBufferAllocator.BindAsResourceSet(cl, 7);
-                cl.SetGraphicsResourceSet(5, SamplerSet.SamplersSet);
+                cl.SetGraphicsResourceSet(5, pipeline.SamplerResourceSet);
 
                 if (!GeometryBufferAllocator.BindAsVertexBuffer(cl,
                         _batches[(MAX_BATCH * _renderSet) + i]._bufferIndex))
@@ -844,6 +893,34 @@ public class SceneRenderer
             Indices.Sort();
         }
 
+        public void ExecuteSynchronous(CommandList drawCommandList)
+        {
+            if (_drawParameters == null)
+            {
+                return;
+            }
+
+            Sort();
+
+            // Use the current buffer for immediate, synchronous rendering
+            var encoder = _drawEncoders[_currentBuffer];
+            
+            // We need to ensure staging and render sets match for this pass
+            // We manually encode into the staging buffer and then force a submit from it
+            foreach (KeyIndex obj in Indices)
+            {
+                var o = Renderables[obj.ItemIndex];
+                encoder.AddDraw(ref _drawParameters[o], _pipelines[o]);
+            }
+
+            encoder.UpdateBuffer(drawCommandList);
+
+            drawCommandList.PushDebugGroup($@"{Name}: Draw Synchronous");
+            // Submit what we just added to the staging buffer
+            encoder.SubmitSynchronous(drawCommandList, Pipeline);
+            drawCommandList.PopDebugGroup();
+        }
+
         public void Execute(CommandList drawCommandList, Fence lastOutstandingDrawFence)
         {
             if (_drawParameters == null)
@@ -862,7 +939,10 @@ public class SceneRenderer
             CommandList resourceUpdateCommandList = Factory.CreateCommandList(QueueType.Graphics);
             resourceUpdateCommandList.Name = "ResourceUpdate";
             resourceUpdateCommandList.PushDebugGroup($@"{Name}: Update resources");
-            PreDrawSetup.Invoke(Device, drawCommandList);
+            if (PreDrawSetup != null)
+            {
+                PreDrawSetup.Invoke(Device, drawCommandList);
+            }
             resourceUpdateCommandList.PopDebugGroup();
             Profiler.TracyCZoneEnd(ctx);
 

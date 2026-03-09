@@ -1,5 +1,4 @@
 ﻿using Hexa.NET.ImGui;
-using Microsoft.AspNetCore.Components.Forms;
 using StudioCore.Application;
 using StudioCore.Editors.AnimEditor;
 using StudioCore.Editors.Common;
@@ -8,12 +7,10 @@ using StudioCore.Editors.ModelEditor;
 using StudioCore.Keybinds;
 using StudioCore.Renderer;
 using StudioCore.Utilities;
-using System;
 using System.Numerics;
 using Veldrid;
 using Veldrid.Sdl2;
 using Veldrid.Utilities;
-using Vortice.Vulkan;
 
 namespace StudioCore.Editors.Viewport;
 
@@ -56,6 +53,7 @@ public class VulkanViewport : IViewport
 
     public ClickSelection ClickSelection;
     public BoxSelection BoxSelection;
+    public TiledScreenshotTool TiledScreenshotTool;
 
     /// <summary>
     /// If true, the user can interact with the viewport.
@@ -238,6 +236,7 @@ public class VulkanViewport : IViewport
 
             ClickSelection = new(this);
             BoxSelection = new(this);
+            TiledScreenshotTool = new(this);
 
             ClearQuad = new FullScreenQuad();
 

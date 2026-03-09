@@ -33,6 +33,7 @@ public class ViewportMenu
         FilterMenu();
         GizmoMenu();
         SelectionMenu();
+        Parent.TiledScreenshotTool.OnGui();
 
         ImGui.EndMenuBar();
     }

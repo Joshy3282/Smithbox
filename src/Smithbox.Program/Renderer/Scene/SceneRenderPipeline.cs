@@ -1,4 +1,4 @@
-﻿using StudioCore.Application;
+using StudioCore.Application;
 using StudioCore.Editors.Common;
 using StudioCore.Editors.Viewport;
 using StudioCore.Utilities;
@@ -14,15 +14,19 @@ namespace StudioCore.Renderer;
 ///     The "renderer" for a scene. This pipeline is instantiated for every real or virtual viewport, and will
 ///     render a scene into an internally maintained framebuffer.
 /// </summary>
-public class SceneRenderPipeline
+public class SceneRenderPipeline : IDisposable
 {
-    private readonly SceneRenderer.RenderQueue _overlayQueue;
-    private readonly SceneRenderer.RenderQueue _renderQueue;
+    public readonly SceneRenderer.RenderQueue _overlayQueue;
+    public readonly SceneRenderer.RenderQueue _renderQueue;
     private readonly RenderScene Scene;
+
+    private readonly GraphicsDevice _device;
 
     // Scene Parameters
     public DeviceBuffer SceneParamBuffer { get; }
     public ResourceSet SceneParamResourceSet { get; }
+
+    public ResourceSet SamplerResourceSet { get; set; }
 
     public SceneParam SceneParams;
 
@@ -46,6 +50,7 @@ public class SceneRenderPipeline
     public unsafe SceneRenderPipeline(RenderScene scene, GraphicsDevice device, int width, int height)
     {
         Scene = scene;
+        _device = device;
 
         ResourceFactory factory = device.ResourceFactory;
 
@@ -109,11 +114,23 @@ public class SceneRenderPipeline
                 VmaAllocationCreateFlags.Mapped));
         device.UpdateBuffer(PickingResultReadbackBuffer, 0, ref PickingResult, (uint)sizeof(PickingResult));
 
+        SamplerResourceSet = SamplerSet.SamplersSet;
+
         _renderQueue = new SceneRenderer.RenderQueue("Viewport Render", device, this);
         SceneRenderer.RegisterRenderQueue(_renderQueue);
 
         _overlayQueue = new SceneRenderer.RenderQueue("Overlay Render", device, this);
         SceneRenderer.RegisterRenderQueue(_overlayQueue);
+    }
+
+    public void Dispose()
+    {
+        SceneRenderer.UnregisterRenderQueue(_renderQueue);
+        SceneRenderer.UnregisterRenderQueue(_overlayQueue);
+
+        SceneParamBuffer.Dispose();
+        PickingResultsBuffer.Dispose();
+        PickingResultReadbackBuffer.Dispose();
     }
 
     public void SetViewportSetupAction(Action<GraphicsDevice, CommandList> action)
