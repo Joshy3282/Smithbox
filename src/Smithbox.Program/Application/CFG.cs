@@ -519,7 +519,10 @@ public class CFG
     /// Param Editor
     ///------------------------------------------------------------
     // General
+    public string ParamEditor_Annotation_Language = "English";
     public bool ParamEditor_Enable_Compact_Mode = false;
+
+    public string ParamEditor_Import_Language = "English";
 
     // Regulation
     public bool ParamEditor_Loose_Param_Mode_DS2 = false;
