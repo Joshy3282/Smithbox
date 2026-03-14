@@ -25,6 +25,7 @@ public class ParamFieldWindow
 
     private Dictionary<string, PropertyInfo[]> _propCache = new();
 
+
     public ParamFieldWindow(ParamEditorScreen editor, ProjectEntry project, ParamEditorView curView)
     {
         Editor = editor;
@@ -274,6 +275,18 @@ public class ParamFieldWindow
             }
 
             ImGui.EndTable();
+        }
+
+        bool useLayout = CFG.Current.ParamEditor_Field_List_Enable_Field_Layouts
+                         && Project.Handler.ParamData.FieldLayouts.Entries.Any(e => e.Name == meta.FieldLayout);
+
+        var groupsDef = useLayout
+            ? Project.Handler.ParamData.FieldLayouts.Entries.FirstOrDefault(e => e.Name == meta.FieldLayout)
+            : null;
+
+        if(useLayout && groupsDef.TotalChanceLot != null)
+        {
+            DisplayTotalChance(curRow, groupsDef);
         }
 
         // Main Fields (by group)
@@ -605,30 +618,41 @@ public class ParamFieldWindow
         var groupedFieldNames = new HashSet<string>(
             groupsDef.Groups.SelectMany(g => g.Fields.Select(f => f)));
 
-        if(!groupsDef.UngroupedAtBottom)
+        if(CFG.Current.ParamEditor_Field_List_Unsorted_Field_Placement is FieldLayoutUnsortedPlacement.Top)
         {
             DisplayUnsortedFields(fieldOrder, groupedFieldNames, meta, annotations, row, vrow, auxRows, crow, cols, vcols, auxCols, activeParam, columnCount);
         }
 
-        foreach (var group in groupsDef.Groups)
+        foreach (var layout in groupsDef.Groups)
         {
-            var groupFields = fieldOrder
-                .Where(f => group.Fields.Any(gf => gf == f))
+            var layoutFields = fieldOrder
+                .Where(f => layout.Fields.Any(gf => gf == f))
                 .ToList();
 
-            if (groupFields.Count == 0)
+            var hasChanceLot = layout.ChanceLot != null;
+
+            if (layoutFields.Count == 0)
                 continue;
 
             if (CFG.Current.ParamEditor_Field_List_Enable_Field_Layout_Type is FieldLayoutMode.Collapsible)
             {
+                var name = layout.GetName();
+                if (!CFG.Current.ParamEditor_Field_List_Enable_Field_Layout_Category_Names)
+                    name = "";
+
                 bool open = ImGui.CollapsingHeader(
-                    $"{group.GetName()}##grp_{activeParam}_{group.Key}",
+                    $"{name}##grp_{activeParam}_{layout.Key}",
                     ImGuiTreeNodeFlags.DefaultOpen);
 
-                if (open && BeginGroupTable($"ParamFieldsG_{activeParam}_{group.Key}", columnCount))
+                if (open && hasChanceLot)
+                {
+                    DisplayChance(row, layout);
+                }
+
+                if (open && BeginGroupTable($"ParamFieldsG_{activeParam}_{layout.Key}", columnCount))
                 {
                     int idx = 0;
-                    foreach (var field in groupFields)
+                    foreach (var field in layoutFields)
                     {
                         RenderField(meta, annotations, row, vrow, auxRows, crow, cols, vcols, auxCols, field, activeParam, ref idx);
                     }
@@ -638,25 +662,43 @@ public class ParamFieldWindow
             }
             else if (CFG.Current.ParamEditor_Field_List_Enable_Field_Layout_Type is FieldLayoutMode.Header)
             {
-                UIHelper.SimpleHeader($"{group.GetName()}", "");
+                if (CFG.Current.ParamEditor_Field_List_Enable_Field_Layout_Category_Names)
+                {
+                    UIHelper.SimpleHeader($"{layout.GetName()}", "");
+                }
 
-                if (BeginGroupTable($"ParamFieldsG_{activeParam}_{group.Key}", columnCount))
+                if (hasChanceLot)
+                {
+                    DisplayChance(row, layout);
+                }
+
+                if (BeginGroupTable($"ParamFieldsG_{activeParam}_{layout.Key}", columnCount))
                 {
                     int idx = 0;
-                    foreach (var field in groupFields)
+                    foreach (var field in layoutFields)
                     {
                         RenderField(meta, annotations, row, vrow, auxRows, crow, cols, vcols, auxCols, field, activeParam, ref idx);
                     }
 
                     ImGui.EndTable();
                 }
+
+                if (!CFG.Current.ParamEditor_Field_List_Enable_Field_Layout_Category_Names)
+                {
+                    ImGui.Separator();
+                }
             }
             else if (CFG.Current.ParamEditor_Field_List_Enable_Field_Layout_Type is FieldLayoutMode.Separator)
             {
-                if (BeginGroupTable($"ParamFieldsG_{activeParam}_{group.Key}", columnCount))
+                if (hasChanceLot)
+                {
+                    DisplayChance(row, layout);
+                }
+
+                if (BeginGroupTable($"ParamFieldsG_{activeParam}_{layout.Key}", columnCount))
                 {
                     int idx = 0;
-                    foreach (var field in groupFields)
+                    foreach (var field in layoutFields)
                     {
                         RenderField(meta, annotations, row, vrow, auxRows, crow, cols, vcols, auxCols, field, activeParam, ref idx);
                     }
@@ -668,10 +710,98 @@ public class ParamFieldWindow
             }
         }
 
-        if (groupsDef.UngroupedAtBottom)
+        if (CFG.Current.ParamEditor_Field_List_Unsorted_Field_Placement is FieldLayoutUnsortedPlacement.Bottom)
         {
             DisplayUnsortedFields(fieldOrder, groupedFieldNames, meta, annotations, row, vrow, auxRows, crow, cols, vcols, auxCols, activeParam, columnCount);
         }
+    }
+
+    private void DisplayChance(Param.Row row, FieldLayoutEntry layout)
+    {
+        if (!CFG.Current.ParamEditor_Field_List_Enable_Field_Layout_Chance_Hints)
+            return;
+
+        var chanceLot = layout.ChanceLot;
+
+        float curChance = 0;
+        float totalChance = 0;
+        
+        foreach(var field in row.Columns)
+        {
+            var fieldName = field.Def.InternalName;
+
+            if(fieldName == chanceLot.TargetField)
+            {
+                var val = field.GetValue(row);
+
+                float intVal = 0;
+                var success = float.TryParse($"{val}", out intVal);
+                if(success)
+                {
+                    curChance = intVal;
+                }
+            }
+
+            if(chanceLot.ChanceSet.Contains(fieldName))
+            {
+                var val = field.GetValue(row);
+
+                float intVal = 0;
+                var success = float.TryParse($"{val}", out intVal);
+                if (success)
+                {
+                    totalChance = totalChance + intVal;
+                }
+            }
+        }
+
+        if (curChance == 0)
+        {
+            ImGui.TextColored(UI.Current.ImGui_AliasName_Text, $"This lot will never occur.");
+            return;
+        }
+
+        var chance = Math.Round((curChance / totalChance) * 100, 2);
+
+        ImGui.TextColored(UI.Current.ImGui_AliasName_Text, $"This lot has a {chance}%% chance to occur.");
+    }
+
+    private void DisplayTotalChance(Param.Row row, FieldLayout layout)
+    {
+        if (!CFG.Current.ParamEditor_Field_List_Enable_Field_Layout_Chance_Hints)
+            return;
+
+        var chanceLot = layout.TotalChanceLot;
+
+        float totalChance = 0;
+
+        foreach (var field in row.Columns)
+        {
+            var fieldName = field.Def.InternalName;
+
+            if (chanceLot.ChanceSet.Contains(fieldName))
+            {
+                var val = field.GetValue(row);
+
+                float intVal = 0;
+                var success = float.TryParse($"{val}", out intVal);
+                if (success)
+                {
+                    totalChance = totalChance + intVal;
+                }
+            }
+        }
+
+        if (totalChance == 0)
+        {
+            ImGui.TextColored(UI.Current.ImGui_AliasName_Text, $"This drop will never occur.");
+            return;
+        }
+
+        if (totalChance > 100)
+            totalChance = 100;
+
+        ImGui.TextColored(UI.Current.ImGui_AliasName_Text, $"This drop has a {totalChance}%% chance to occur.");
     }
 
     private void RenderField(ParamMeta meta, ParamAnnotationEntry annotations, 

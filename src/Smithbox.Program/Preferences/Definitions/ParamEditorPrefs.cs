@@ -1202,15 +1202,19 @@ public class ParamEditorPrefs
         };
     }
 
+    #endregion
+
+    #region Field Layouts
+
     public static PreferenceItem ParamEditor_Field_List_Enable_Field_Grouping()
     {
         return new PreferenceItem
         {
-            OrderID = 17,
+            OrderID = 0,
             Category = PreferenceCategory.ParamEditor,
             Spacer = true,
 
-            Section = SectionCategory.ParamEditor_Field_List,
+            Section = SectionCategory.ParamEditor_Field_Layouts,
 
             Title = "Enable Field Layouts",
             Description = "If enabled, fields will be arranged based on field layout data (if applicable).",
@@ -1220,16 +1224,53 @@ public class ParamEditorPrefs
             }
         };
     }
+    public static PreferenceItem ParamEditor_Field_List_Enable_Field_Layout_Category_Names()
+    {
+        return new PreferenceItem
+        {
+            OrderID = 1,
+            Category = PreferenceCategory.ParamEditor,
+            Spacer = true,
+
+            Section = SectionCategory.ParamEditor_Field_Layouts,
+
+            Title = "Enable Group Names",
+            Description = "If enabled, the grouping headers will have names.",
+
+            Draw = () => {
+                ImGui.Checkbox("##inputValue", ref CFG.Current.ParamEditor_Field_List_Enable_Field_Layout_Category_Names);
+            }
+        };
+    }
+    public static PreferenceItem ParamEditor_Field_List_Enable_Field_Layout_Chance_Hints()
+    {
+        return new PreferenceItem
+        {
+            OrderID = 2,
+            Category = PreferenceCategory.ParamEditor,
+            Spacer = true,
+
+            Section = SectionCategory.ParamEditor_Field_Layouts,
+
+            Title = "Enable Chance Hints",
+            Description = "If enabled, the chance percentages for item lots will be displayed.",
+
+            Draw = () => {
+                ImGui.Checkbox("##inputValue", ref CFG.Current.ParamEditor_Field_List_Enable_Field_Layout_Chance_Hints);
+            }
+        };
+    }
+
     public static PreferenceItem ParamEditor_Field_List_Enable_Field_Group_Type()
     {
         return new PreferenceItem
         {
-            OrderID = 18,
+            OrderID = 3,
             Category = PreferenceCategory.ParamEditor,
             Spacer = true,
             InlineName = false,
 
-            Section = SectionCategory.ParamEditor_Field_List,
+            Section = SectionCategory.ParamEditor_Field_Layouts,
 
             Title = "Field Layout Mode",
             Description = "Determines how the field layouts are displayed.",
@@ -1245,6 +1286,38 @@ public class ParamEditorPrefs
                         if (ImGui.Selectable(type.GetDisplayName()))
                         {
                             CFG.Current.ParamEditor_Field_List_Enable_Field_Layout_Type = (FieldLayoutMode)entry;
+                        }
+                    }
+                    ImGui.EndCombo();
+                }
+            }
+        };
+    }
+    public static PreferenceItem ParamEditor_Field_List_Unsorted_Field_Placement()
+    {
+        return new PreferenceItem
+        {
+            OrderID = 4,
+            Category = PreferenceCategory.ParamEditor,
+            Spacer = true,
+            InlineName = false,
+
+            Section = SectionCategory.ParamEditor_Field_Layouts,
+
+            Title = "Unsorted Field Placement",
+            Description = "Determines where the unsorted fields are placed when Field Layouts are active.",
+
+            Draw = () => {
+                DPI.ApplyInputWidth();
+                if (ImGui.BeginCombo("##inputValue", CFG.Current.ParamEditor_Field_List_Unsorted_Field_Placement.GetDisplayName()))
+                {
+                    foreach (var entry in Enum.GetValues(typeof(FieldLayoutUnsortedPlacement)))
+                    {
+                        var type = (FieldLayoutUnsortedPlacement)entry;
+
+                        if (ImGui.Selectable(type.GetDisplayName()))
+                        {
+                            CFG.Current.ParamEditor_Field_List_Unsorted_Field_Placement = (FieldLayoutUnsortedPlacement)entry;
                         }
                     }
                     ImGui.EndCombo();

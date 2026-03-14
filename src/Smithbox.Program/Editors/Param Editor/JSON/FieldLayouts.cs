@@ -15,9 +15,11 @@ public class FieldLayouts
 public class FieldLayout
 {
     public string Name { get; set; }
-    public bool UngroupedAtBottom { get; set; }
 
     public List<FieldLayoutEntry> Groups { get; set; } = new();
+
+    // For DS2 only
+    public ChanceLotEntry TotalChanceLot { get; set; } = null;
 }
 
 public class FieldLayoutEntry
@@ -25,6 +27,8 @@ public class FieldLayoutEntry
     public string Key { get; set; }
     public List<FieldLayoutNameEntry> Names { get; set; } = new();
     public List<string> Fields { get; set; }
+
+    public ChanceLotEntry ChanceLot { get; set; } = null;
 
     public string GetName()
     {
@@ -45,4 +49,15 @@ public class FieldLayoutNameEntry
 {
     public string Language { get; set; }
     public string Name { get; set; }
+}
+
+// Special roll chance stuff
+public class ChanceLotEntry
+{
+    public string TargetField { get; set; }
+    public List<string> ChanceSet { get; set; }
+}
+public class TotalChanceLotEntry
+{
+    public List<string> ChanceSet { get; set; }
 }

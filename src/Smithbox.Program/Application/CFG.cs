@@ -558,7 +558,7 @@ public class CFG
 
     // Table List
     public bool ParamEditor_Display_Table_List = true;
-    public ParamTableRowDisplayType ParamEditor_Table_List_Row_Display_Type = ParamTableRowDisplayType.None;
+    public ParamTableRowDisplayType ParamEditor_Table_List_Row_Name_Display_Type = ParamTableRowDisplayType.ID;
 
 
     // Row List
@@ -586,8 +586,12 @@ public class CFG
     public float ParamEditor_Field_List_Icon_Preview_Scale = 1.0f;
     public bool ParamEditor_Field_List_Display_Modified_Field_Bg = true;
     public bool ParamEditor_Field_List_GroupReference_DisplayCommunityName = true;
+
     public bool ParamEditor_Field_List_Enable_Field_Layouts = true;
+    public bool ParamEditor_Field_List_Enable_Field_Layout_Category_Names = true;
+    public bool ParamEditor_Field_List_Enable_Field_Layout_Chance_Hints = true;
     public FieldLayoutMode ParamEditor_Field_List_Enable_Field_Layout_Type = FieldLayoutMode.Collapsible;
+    public FieldLayoutUnsortedPlacement ParamEditor_Field_List_Unsorted_Field_Placement = FieldLayoutUnsortedPlacement.Bottom;
 
     public ParamTooltipMode ParamEditor_Field_List_Tooltip_Mode = ParamTooltipMode.OnFieldName;
 
@@ -1028,8 +1032,8 @@ public class CFG
 
     public Vector3 Viewport_Bg_Color = new(0.1f, 0.1f, 0.1f);
 
-    public float Viewport_Untextured_Model_Brightness = 1.0f;
-    public float Viewport_Untextured_Model_Saturation = 0.5f;
+    public float Viewport_Flat_Model_Brightness = 1.0f;
+    public float Viewport_Flat_Model_Saturation = 0.5f;
 
     public bool Viewport_Enable_Selection_Outline = false;
     public Vector3 Viewport_Selection_Outline_Color = new(1.0f, 0.5f, 0.0f);
