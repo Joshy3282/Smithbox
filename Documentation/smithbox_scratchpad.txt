@@ -2,11 +2,11 @@
 # TODO 
 #---------------------
 
-- Keybinds:
- - Add option to set key to Unknown (button like the reset button)
-
 - Param Editor
  - Fix the FMG ref finder (the finder is inconsistent)
+ 
+- Model Editor
+ - Fix dummy movement
 
 - Material Editor:
  - Add MATBIN support back
@@ -17,6 +17,4 @@
  
  
 - Finish converting the SDT AlternativeOrders into Field Layouts
-- Add in all the new DS2 defs
-- Add in blank DS2 metas for the new defs
-- Add in black DS2 annotations for the new defs
+- Translate DS2 meta
