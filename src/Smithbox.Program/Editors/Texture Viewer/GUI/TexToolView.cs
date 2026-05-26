@@ -72,6 +72,12 @@ public class TexToolView
             }
             UIHelper.Tooltip($"Export currently selected texture.");
 
+            if (ImGui.MenuItem("Mass Export (PNG)"))
+            {
+                TextureExport.ExportAllTexturesHandler();
+            }
+            UIHelper.Tooltip($"Export all textures in the selected container as PNG.");
+
             ImGui.EndMenu();
         }
     }

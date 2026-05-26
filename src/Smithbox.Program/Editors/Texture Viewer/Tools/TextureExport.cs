@@ -1,4 +1,5 @@
 ﻿using Hexa.NET.ImGui;
+using SoulsFormats;
 using StudioCore.Application;
 using StudioCore.Renderer;
 using StudioCore.Utilities;
@@ -75,7 +76,84 @@ public class TextureExport
                 ExportTextureHandler();
             }
 
+            if (ImGui.Button("Mass Export (PNG)##action_Selection_MassExportTexture", DPI.WholeWidthButton(windowWidth, 24)))
+            {
+                ExportAllTexturesHandler();
+            }
+
             ImGui.EndChild();
+        }
+    }
+
+    public void ExportAllTexturesHandler()
+    {
+        var activeView = Editor.ViewHandler.ActiveView;
+
+        if (activeView == null)
+            return;
+
+        if (activeView.Selection.SelectedBinder == null)
+        {
+            PlatformUtils.Instance.MessageBox($"No container is currently selected.", $"Smithbox", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            return;
+        }
+
+        var exportPath = CFG.Current.TextureViewerToolbar_ExportTextureLocation;
+        if (exportPath == "")
+        {
+            PlatformUtils.Instance.MessageBox($"Export Destination is not set.", $"Smithbox", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            return;
+        }
+
+        if (!Directory.Exists(exportPath))
+        {
+            PlatformUtils.Instance.MessageBox($"Directory is not valid.", $"Smithbox", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            return;
+        }
+
+        int count = 0;
+        foreach (var fileEntry in activeView.Selection.SelectedBinder.Files)
+        {
+            var tpf = fileEntry.Value;
+            var tpfName = Path.GetFileNameWithoutExtension(fileEntry.Key.Name);
+
+            foreach (var tex in tpf.Textures)
+            {
+                var filename = tex.Name;
+                var finalExportPath = exportPath;
+
+                if (CFG.Current.TextureViewerToolbar_ExportTexture_IncludeFolder)
+                {
+                    finalExportPath = Path.Join(exportPath, tpfName);
+                    if (!Directory.Exists(finalExportPath))
+                    {
+                        Directory.CreateDirectory(finalExportPath);
+                    }
+                }
+
+                var exportFilePath = Path.Join(finalExportPath, filename);
+
+                byte[] bytes = tex.Bytes.ToArray();
+                if (tpf.Platform != SoulsFormats.TPF.TPFPlatform.PC)
+                {
+                    bytes = tex.Headerize();
+                }
+
+                try
+                {
+                    TexUtils.ExportPNGImage(exportFilePath, bytes);
+                    count++;
+                }
+                catch (System.Exception e)
+                {
+                    Smithbox.LogError(this, $"Failed to export {filename} in {tpfName}: {e.Message}");
+                }
+            }
+        }
+
+        if (CFG.Current.TextureViewerToolbar_ExportTexture_DisplayConfirm)
+        {
+            PlatformUtils.Instance.MessageBox($"{count} textures exported to {exportPath}.", $"Smithbox", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
     }
 
